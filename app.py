@@ -1,19 +1,31 @@
-# app.py
-import streamlit as st, ee, tempfile, os
+# app.py — top of file (replace your current import block with this)
+
+import os
+# Force geemap to use the Streamlit-friendly Folium backend
+os.environ["GEEMAP_BACKEND"] = "folium"
+
+import streamlit as st
 import ee
+import tempfile
+
+# Import the Folium backend explicitly so Jupyter widgets aren't pulled in
 import geemap.foliumap as geemap
+import folium
+
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-import folium
+
 from sklearn.cluster import KMeans, DBSCAN
+from sklearn.linear_model import LinearRegression
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.colors import LinearSegmentedColormap
+
 import plotly.express as px
 import plotly.graph_objects as go
-import os
-from sklearn.linear_model import LinearRegression
+
 from statsmodels.tsa.arima.model import ARIMA
 import warnings
 
