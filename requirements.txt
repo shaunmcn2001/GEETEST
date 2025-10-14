@@ -3,12 +3,13 @@ earthengine-api==0.1.384
 geemap>=0.34.2
 folium>=0.20.0
 streamlit-folium>=0.25.3
-setuptools>=68.0.0
 ipython>=8.10
 ipywidgets>=8.0
-pandas==2.2.3
-numpy==1.26.4
-scikit-learn==1.5.2
+ipyfilechooser>=0.6.0
+setuptools>=68.0.0
+pandas>=2.2.2
+numpy>=1.26.4
+scikit-learn>=1.5.2
 statsmodels>=0.14.2
 plotly>=5.22
 matplotlib>=3.7
