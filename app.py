@@ -1,5 +1,5 @@
 # app.py
-import streamlit as st
+import streamlit as st,, ee, tempfile, os
 import ee
 import geemap.foliumap as geemap
 import pandas as pd
@@ -23,17 +23,28 @@ warnings.filterwarnings("ignore")
 # Set page configuration
 st.set_page_config(layout="wide", page_title="NDVI Based Field Segmentation")
 
-# Initialize Earth Engine
-@st.cache_resource
-def initialize_ee():
-    try:
-        ee.Initialize(project='ndvi-field-segmentation')
-    except Exception:
-        ee.Authenticate()
-        ee.Initialize(project='ndvi-field-segmentation')
+import streamlit as st, ee, tempfile, os
 
-# Call the initialization function
-initialize_ee()
+@st.cache_resource(show_spinner=False)
+def initialize_ee():
+    """Initialize Earth Engine using Streamlit secrets."""
+    sa = st.secrets["ee"]["service_account"]
+    key_json = st.secrets["ee"]["private_key"]
+    project = st.secrets["ee"].get("project", "ndvi-field-segmentation")
+
+    # write the JSON key to a temp file because ServiceAccountCredentials needs a path
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        f.write(key_json)
+        key_path = f.name
+    try:
+        creds = ee.ServiceAccountCredentials(sa, key_path)
+        ee.Initialize(credentials=creds, project=project)
+        return "✅ Earth Engine initialized"
+    finally:
+        os.remove(key_path)
+
+# Run initialization and show confirmation
+st.success(initialize_ee())
 
 def app():
     st.title("Field Segmentation using NDVI Analysis")
