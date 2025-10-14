@@ -1,4 +1,6 @@
 # app.py
+import os
+os.environ["GEEMAP_BACKEND"] = "folium" 
 import streamlit as st, ee
 import ee
 import geemap.foliumap as geemap
@@ -13,8 +15,7 @@ import matplotlib.colors as mcolors
 from matplotlib.colors import LinearSegmentedColormap
 import plotly.express as px
 import plotly.graph_objects as go
-import os
-os.environ["GEEMAP_BACKEND"] = "folium" 
+
 
 # Set page configuration
 st.set_page_config(layout="wide", page_title="NDVI Based Field Segmentation")
