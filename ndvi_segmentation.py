@@ -1,7 +1,7 @@
 # app.py
 import os
 os.environ["GEEMAP_BACKEND"] = "folium" 
-import geemap.foliumap as geemap
+from geemap import foliumap as geemap
 import streamlit as st, ee
 import ee
 import pandas as pd
