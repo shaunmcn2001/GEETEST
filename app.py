@@ -1,7 +1,14 @@
 # app.py
 import streamlit as st
+try:
+    import os
+    os.environ["GEEMAP_BACKEND"] = "folium"
+    import geemap.foliumap as geemap
+except Exception as e:
+    st.error(f"geemap folium backend failed: {e}")
+    st.info("Try adding to requirements.txt: geemap>=0.34.2, folium>=0.20.0, streamlit-folium>=0.25.0")
+    st.stop()
 import ee
-import geemap.foliumap as geemap
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
