@@ -1,9 +1,9 @@
 # app.py
 import os
 os.environ["GEEMAP_BACKEND"] = "folium" 
+import geemap.foliumap as geemap
 import streamlit as st, ee
 import ee
-import geemap.foliumap as geemap
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
