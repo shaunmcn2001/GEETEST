@@ -30,7 +30,7 @@ def initialize_ee():
     """Initialize Earth Engine using Streamlit secrets."""
     sa = st.secrets["ee"]["service_account"]
     key_json = st.secrets["ee"]["private_key"]
-    project = st.secrets["ee"].get("project", "ndvi-field-segmentation")
+    project = st.secrets["ee"].get("project", "baradine-farm")
 
     # write the JSON key to a temp file because ServiceAccountCredentials needs a path
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
