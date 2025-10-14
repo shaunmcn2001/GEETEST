@@ -8,3 +8,4 @@ scikit-learn==1.5.2
 python-multipart==0.0.6
 geemap>=0.34.2
 folium>=0.20.0
+setuptools>=68.0.0
