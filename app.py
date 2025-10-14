@@ -1,5 +1,5 @@
 # app.py
-import streamlit as st,, ee, tempfile, os
+import streamlit as st, ee, tempfile, os
 import ee
 import geemap.foliumap as geemap
 import pandas as pd
