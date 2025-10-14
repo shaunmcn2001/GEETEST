@@ -1,17 +1,7 @@
 # app.py
-import os
-os.environ["GEEMAP_BACKEND"] = "folium"   # ✅ force Folium backend
-
 import streamlit as st
 import ee
-
-# Import geemap safely (no toolbar/map_widgets)
-try:
-    import geemap.foliumap as geemap
-except Exception as e:
-    st.error(f"Failed to load geemap folium backend: {e}")
-    st.stop()
-
+import geemap.foliumap as geemap
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
