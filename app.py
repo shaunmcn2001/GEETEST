@@ -1,31 +1,19 @@
-# app.py — top of file (replace your current import block with this)
-
-import os
-# Force geemap to use the Streamlit-friendly Folium backend
-os.environ["GEEMAP_BACKEND"] = "folium"
-
+# app.py
 import streamlit as st
 import ee
-import tempfile
-
-# Import the Folium backend explicitly so Jupyter widgets aren't pulled in
 import geemap.foliumap as geemap
-import folium
-
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-
+import folium
 from sklearn.cluster import KMeans, DBSCAN
-from sklearn.linear_model import LinearRegression
-
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.colors import LinearSegmentedColormap
-
 import plotly.express as px
 import plotly.graph_objects as go
-
+import os
+from sklearn.linear_model import LinearRegression
 from statsmodels.tsa.arima.model import ARIMA
 import warnings
 
@@ -35,28 +23,17 @@ warnings.filterwarnings("ignore")
 # Set page configuration
 st.set_page_config(layout="wide", page_title="NDVI Based Field Segmentation")
 
-import streamlit as st, ee, tempfile, os
-
-@st.cache_resource(show_spinner=False)
+# Initialize Earth Engine
+@st.cache_resource
 def initialize_ee():
-    """Initialize Earth Engine using Streamlit secrets."""
-    sa = st.secrets["ee"]["service_account"]
-    key_json = st.secrets["ee"]["private_key"]
-    project = st.secrets["ee"].get("project", "baradine-farm")
-
-    # write the JSON key to a temp file because ServiceAccountCredentials needs a path
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        f.write(key_json)
-        key_path = f.name
     try:
-        creds = ee.ServiceAccountCredentials(sa, key_path)
-        ee.Initialize(credentials=creds, project=project)
-        return "✅ Earth Engine initialized"
-    finally:
-        os.remove(key_path)
+        ee.Initialize(project='ndvi-field-segmentation')
+    except Exception:
+        ee.Authenticate()
+        ee.Initialize(project='ndvi-field-segmentation')
 
-# Run initialization and show confirmation
-st.success(initialize_ee())
+# Call the initialization function
+initialize_ee()
 
 def app():
     st.title("Field Segmentation using NDVI Analysis")
