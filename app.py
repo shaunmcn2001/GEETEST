@@ -48,8 +48,12 @@ def initialize_ee():
         try:
             key_data = json.loads(key_str)
         except json.JSONDecodeError:
-            # Handle secrets that contain escaped characters (e.g. from TOML triple quotes)
-            key_data = json.loads(bytes(key_str, "utf-8").decode("unicode_escape"))
+            try:
+                # Allow control characters that may appear in multiline secrets (e.g. private keys)
+                key_data = json.loads(key_str, strict=False)
+            except json.JSONDecodeError:
+                # Handle secrets that contain escaped characters (e.g. from TOML triple quotes)
+                key_data = json.loads(bytes(key_str, "utf-8").decode("unicode_escape"))
 
     if not project:
         project = key_data.get("project_id")
