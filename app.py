@@ -43,6 +43,7 @@ def initialize_ee():
 
     if isinstance(key_json, dict):
         key_data = key_json
+        key_str = json.dumps(key_json)
     else:
         key_str = key_json.strip()
         try:
@@ -58,7 +59,7 @@ def initialize_ee():
     if not project:
         project = key_data.get("project_id")
 
-    creds = ee.ServiceAccountCredentials(sa_email, key_data=key_data)
+    creds = ee.ServiceAccountCredentials(sa_email, key_data=key_str)
     ee.Initialize(credentials=creds, project=project)
     return "✅ Earth Engine initialized (service account)"
 
