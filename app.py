@@ -1,28 +1,23 @@
-# app.py  — Streamlit + geemap (Folium) + Earth Engine (service account)
 import os
 os.environ["GEEMAP_BACKEND"] = "folium"
 
 import streamlit as st
 import ee
 import tempfile
-
-# Import Folium backend directly to avoid Jupyter imports
 from geemap import foliumap as geemap
 import folium
-
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.mixture import GaussianMixture
-
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.colors import LinearSegmentedColormap
 import plotly.express as px
 import plotly.graph_objects as go
 
+# ------------------------------------------------------------
 st.set_page_config(layout="wide", page_title="NDVI Based Field Segmentation")
 
 @st.cache_resource(show_spinner=False)
@@ -46,7 +41,6 @@ def initialize_ee():
     key_json = st.secrets["ee"]["private_key"]
     project = st.secrets["ee"].get("project")
 
-    import tempfile, os, ee
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         f.write(key_json)
         key_path = f.name
@@ -58,6 +52,7 @@ def initialize_ee():
     finally:
         os.remove(key_path)
 
+# ✅ Correct call (no indentation, outside the function)
 st.success(initialize_ee())
 
 # Initialize Earth Engine
