@@ -1,21 +1,7 @@
 # app.py
-import os
-os.environ["GEEMAP_BACKEND"] = "folium"
-
-# The latest versions of IPython removed ``display`` from ``IPython.core.display``.
-# geemap still imports the name from there, which causes an ImportError when the
-# attribute is missing. We mirror the public ``IPython.display.display`` function
-# onto ``IPython.core.display`` before importing geemap so that the import
-# succeeds across IPython releases.
-import IPython.display as _ipy_display
-import IPython.core.display as _ipy_core_display
-
-if not hasattr(_ipy_core_display, "display"):
-    _ipy_core_display.display = _ipy_display.display
-
-from geemap import foliumap as geemap
-import streamlit as st, ee
+import streamlit as st
 import ee
+import geemap.foliumap as geemap
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -27,7 +13,7 @@ import matplotlib.colors as mcolors
 from matplotlib.colors import LinearSegmentedColormap
 import plotly.express as px
 import plotly.graph_objects as go
-
+import os
 
 # Set page configuration
 st.set_page_config(layout="wide", page_title="NDVI Based Field Segmentation")

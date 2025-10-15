@@ -1,74 +1,39 @@
-import os
-os.environ["GEEMAP_BACKEND"] = "folium"
-
+# app.py
 import streamlit as st
 import ee
-import json
-from geemap import foliumap as geemap
-import folium
+import geemap.foliumap as geemap
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import folium
 from sklearn.cluster import KMeans, DBSCAN
-from sklearn.mixture import GaussianMixture
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.colors import LinearSegmentedColormap
 import plotly.express as px
 import plotly.graph_objects as go
+import os
+from sklearn.linear_model import LinearRegression
+from statsmodels.tsa.arima.model import ARIMA
+import warnings
 
-# ------------------------------------------------------------
+# Suppress warnings for cleaner output
+warnings.filterwarnings("ignore")
+
+# Set page configuration
 st.set_page_config(layout="wide", page_title="NDVI Based Field Segmentation")
-
-@st.cache_resource(show_spinner=False)
-def initialize_ee():
-    """Initialize Earth Engine from Streamlit secrets."""
-    if (
-        "ee" not in st.secrets
-        or "service_account" not in st.secrets["ee"]
-        or "private_key" not in st.secrets["ee"]
-    ):
-        raise RuntimeError(
-            "Missing secrets.\n\n"
-            "In Streamlit → Settings → Secrets, add:\n\n"
-            "[ee]\n"
-            "service_account = \"your-service-account@your-project.iam.gserviceaccount.com\"\n"
-            "private_key = \"\"\"{...full JSON...}\"\"\"\n"
-            "project = \"your-project\"\n"
-        )
-
-    sa_email = st.secrets["ee"]["service_account"]
-    key_json = st.secrets["ee"]["private_key"]
-    project = st.secrets["ee"].get("project")
-
-    if isinstance(key_json, dict):
-        key_data = key_json
-        key_str = json.dumps(key_json)
-    else:
-        key_str = key_json.strip()
-        try:
-            key_data = json.loads(key_str)
-        except json.JSONDecodeError:
-            try:
-                # Allow control characters that may appear in multiline secrets (e.g. private keys)
-                key_data = json.loads(key_str, strict=False)
-            except json.JSONDecodeError:
-                # Handle secrets that contain escaped characters (e.g. from TOML triple quotes)
-                key_data = json.loads(bytes(key_str, "utf-8").decode("unicode_escape"))
-
-    if not project:
-        project = key_data.get("project_id")
-
-    creds = ee.ServiceAccountCredentials(sa_email, key_data=key_str)
-    ee.Initialize(credentials=creds, project=project)
-    return "✅ Earth Engine initialized (service account)"
-
-# ✅ Correct call (no indentation, outside the function)
-st.success(initialize_ee())
 
 # Initialize Earth Engine
 @st.cache_resource
+def initialize_ee():
+    try:
+        ee.Initialize(project='ndvi-field-segmentation')
+    except Exception:
+        ee.Authenticate()
+        ee.Initialize(project='ndvi-field-segmentation')
+
 # Call the initialization function
+initialize_ee()
 
 def app():
     st.title("Field Segmentation using NDVI Analysis")
@@ -204,7 +169,7 @@ def get_sentinel2_collection(start_date, end_date, geometry):
     end = ee.Date(end_date.strftime('%Y-%m-%d'))
     
     # Get Sentinel-2 surface reflectance data
-    s2 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED') \
+    s2 = ee.ImageCollection('COPERNICUS/S2_HARMONIZED') \
         .filterDate(start, end) \
         .filterBounds(geometry) \
         .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
@@ -346,10 +311,10 @@ def predict_future_rainfall(rainfall_data, days_to_predict):
 def perform_kmeans_zoning(ndvi_image, geometry, num_zones):
     """Segment the field into zones based on NDVI values using K-means clustering."""
     # Sample NDVI values within the field boundary
-    ndvi_sample = ndvi_image.select('NDVI').sample(
-        region=geometry,
+    ndvi_sample = ndvi_image.select('NDVI').sampleRegions(
+        collection=geometry,
         scale=10,
-        geometries=False
+        geometries=True
     )
     
     # Use K-means clustering to segment the field
@@ -361,10 +326,10 @@ def perform_kmeans_zoning(ndvi_image, geometry, num_zones):
 def perform_dbscan_zoning(ndvi_image, geometry, eps, min_samples):
     """Segment the field into zones using DBSCAN clustering."""
     # Sample NDVI values within the field boundary
-    ndvi_sample = ndvi_image.select('NDVI').sample(
-        region=geometry,
+    ndvi_sample = ndvi_image.select('NDVI').sampleRegions(
+        collection=geometry,
         scale=10,
-        geometries=False
+        geometries=True
     )
     
     # Convert Earth Engine FeatureCollection to a Python list
