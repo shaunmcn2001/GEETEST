@@ -114,7 +114,7 @@ def app():
     
     # Analysis button
     if st.button("Analyze Field"):
-    with st.spinner("Processing satellite imagery..."):
+        with st.spinner("Processing satellite imagery..."):
             # Get Sentinel-2 imagery
             s2_collection = get_sentinel2_collection(start_date, end_date, ee.Geometry.Point([longitude, latitude]).buffer(buffer_size))
             
