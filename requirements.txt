@@ -1,15 +1,28 @@
+# Streamlit + GEE + geemap (works on Python 3.11–3.13)
 streamlit==1.50.0
 earthengine-api==0.1.384
+
+# geemap folium backend + bridge
 geemap>=0.34.2
 folium>=0.20.0
 streamlit-folium>=0.25.3
+
+# geemap / pkg_resources needs
+setuptools>=68.0.0
 ipython>=8.10
 ipywidgets>=8.0
 ipyfilechooser>=0.6.0
-setuptools>=68.0.0
-pandas>=2.2.2
-numpy>=1.26.4
-scikit-learn>=1.5.2
+
+# your data/plot stack (safe pins)
+pandas==2.2.3
+numpy==1.26.4
+scikit-learn==1.5.2
 statsmodels>=0.14.2
 plotly>=5.22
 matplotlib>=3.7
+
+# (optional) if you still have FastAPI files in repo, leave these; they won’t run from Streamlit:
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.8.2
+python-multipart==0.0.6
