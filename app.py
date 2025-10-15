@@ -27,21 +27,30 @@ st.set_page_config(layout="wide", page_title="NDVI Based Field Segmentation")
 
 @st.cache_resource(show_spinner=False)
 def initialize_ee():
-    # Expect secrets: [ee.service_account], [ee.private_key], optional [ee.project]
-    if "ee" not in st.secrets or "service_account" not in st.secrets["ee"] or "private_key" not in st.secrets["ee"]:
-        raise RuntimeError("Missing secrets. Add to Settings → Secrets:
-[ee]
-service_account=...
-private_key=\"\"\"{...}\"\"\"
-project=...")
+    """Initialize Earth Engine from Streamlit secrets."""
+    if (
+        "ee" not in st.secrets
+        or "service_account" not in st.secrets["ee"]
+        or "private_key" not in st.secrets["ee"]
+    ):
+        raise RuntimeError(
+            "Missing secrets.\n\n"
+            "In Streamlit → Settings → Secrets, add:\n\n"
+            "[ee]\n"
+            "service_account = \"your-service-account@your-project.iam.gserviceaccount.com\"\n"
+            "private_key = \"\"\"{...full JSON...}\"\"\"\n"
+            "project = \"your-project\"\n"
+        )
 
     sa_email = st.secrets["ee"]["service_account"]
     key_json = st.secrets["ee"]["private_key"]
     project = st.secrets["ee"].get("project")
 
+    import tempfile, os, ee
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         f.write(key_json)
         key_path = f.name
+
     try:
         creds = ee.ServiceAccountCredentials(sa_email, key_path)
         ee.Initialize(credentials=creds, project=project)
