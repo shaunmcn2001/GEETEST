@@ -1,37 +1,58 @@
-# app.py
+# app.py  — Streamlit + geemap (Folium) + Earth Engine (service account)
+import os
+os.environ["GEEMAP_BACKEND"] = "folium"
+
 import streamlit as st
 import ee
-import geemap.foliumap as geemap
+import tempfile
+
+# Import Folium backend directly to avoid Jupyter imports
+from geemap import foliumap as geemap
+import folium
+
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-import folium
+
 from sklearn.cluster import KMeans, DBSCAN
+from sklearn.mixture import GaussianMixture
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.colors import LinearSegmentedColormap
 import plotly.express as px
 import plotly.graph_objects as go
-import os
-from sklearn.linear_model import LinearRegression
-from statsmodels.tsa.arima.model import ARIMA
-import warnings
 
-# Suppress warnings for cleaner output
-warnings.filterwarnings("ignore")
-
-# Set page configuration
 st.set_page_config(layout="wide", page_title="NDVI Based Field Segmentation")
+
+@st.cache_resource(show_spinner=False)
+def initialize_ee():
+    # Expect secrets: [ee.service_account], [ee.private_key], optional [ee.project]
+    if "ee" not in st.secrets or "service_account" not in st.secrets["ee"] or "private_key" not in st.secrets["ee"]:
+        raise RuntimeError("Missing secrets. Add to Settings → Secrets:
+[ee]
+service_account=...
+private_key=\"\"\"{...}\"\"\"
+project=...")
+
+    sa_email = st.secrets["ee"]["service_account"]
+    key_json = st.secrets["ee"]["private_key"]
+    project = st.secrets["ee"].get("project")
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        f.write(key_json)
+        key_path = f.name
+    try:
+        creds = ee.ServiceAccountCredentials(sa_email, key_path)
+        ee.Initialize(credentials=creds, project=project)
+        return "✅ Earth Engine initialized (service account)"
+    finally:
+        os.remove(key_path)
+
+st.success(initialize_ee())
 
 # Initialize Earth Engine
 @st.cache_resource
-def initialize_ee():
-    try:
-        ee.Initialize(project='ndvi-field-segmentation')
-    except Exception:
-        ee.Authenticate()
-        ee.Initialize(project='ndvi-field-segmentation')
-
 # Call the initialization function
 initialize_ee()
 
@@ -90,7 +111,7 @@ def app():
     
     # Analysis button
     if st.button("Analyze Field"):
-        with st.spinner("Processing satellite imagery..."):
+    with st.spinner("Processing satellite imagery..."):
             # Get Sentinel-2 imagery
             s2_collection = get_sentinel2_collection(start_date, end_date, ee.Geometry.Point([longitude, latitude]).buffer(buffer_size))
             
@@ -169,7 +190,7 @@ def get_sentinel2_collection(start_date, end_date, geometry):
     end = ee.Date(end_date.strftime('%Y-%m-%d'))
     
     # Get Sentinel-2 surface reflectance data
-    s2 = ee.ImageCollection('COPERNICUS/S2_HARMONIZED') \
+    s2 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED') \
         .filterDate(start, end) \
         .filterBounds(geometry) \
         .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
@@ -311,10 +332,10 @@ def predict_future_rainfall(rainfall_data, days_to_predict):
 def perform_kmeans_zoning(ndvi_image, geometry, num_zones):
     """Segment the field into zones based on NDVI values using K-means clustering."""
     # Sample NDVI values within the field boundary
-    ndvi_sample = ndvi_image.select('NDVI').sampleRegions(
-        collection=geometry,
+    ndvi_sample = ndvi_image.select('NDVI').sample(
+        region=geometry,
         scale=10,
-        geometries=True
+        geometries=False
     )
     
     # Use K-means clustering to segment the field
@@ -326,10 +347,10 @@ def perform_kmeans_zoning(ndvi_image, geometry, num_zones):
 def perform_dbscan_zoning(ndvi_image, geometry, eps, min_samples):
     """Segment the field into zones using DBSCAN clustering."""
     # Sample NDVI values within the field boundary
-    ndvi_sample = ndvi_image.select('NDVI').sampleRegions(
-        collection=geometry,
+    ndvi_sample = ndvi_image.select('NDVI').sample(
+        region=geometry,
         scale=10,
-        geometries=True
+        geometries=False
     )
     
     # Convert Earth Engine FeatureCollection to a Python list
