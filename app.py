@@ -58,7 +58,6 @@ st.success(initialize_ee())
 # Initialize Earth Engine
 @st.cache_resource
 # Call the initialization function
-initialize_ee()
 
 def app():
     st.title("Field Segmentation using NDVI Analysis")
