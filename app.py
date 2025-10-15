@@ -3,7 +3,7 @@ os.environ["GEEMAP_BACKEND"] = "folium"
 
 import streamlit as st
 import ee
-import tempfile
+import json
 from geemap import foliumap as geemap
 import folium
 import pandas as pd
@@ -41,16 +41,22 @@ def initialize_ee():
     key_json = st.secrets["ee"]["private_key"]
     project = st.secrets["ee"].get("project")
 
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        f.write(key_json)
-        key_path = f.name
+    if isinstance(key_json, dict):
+        key_data = key_json
+    else:
+        key_str = key_json.strip()
+        try:
+            key_data = json.loads(key_str)
+        except json.JSONDecodeError:
+            # Handle secrets that contain escaped characters (e.g. from TOML triple quotes)
+            key_data = json.loads(bytes(key_str, "utf-8").decode("unicode_escape"))
 
-    try:
-        creds = ee.ServiceAccountCredentials(sa_email, key_path)
-        ee.Initialize(credentials=creds, project=project)
-        return "✅ Earth Engine initialized (service account)"
-    finally:
-        os.remove(key_path)
+    if not project:
+        project = key_data.get("project_id")
+
+    creds = ee.ServiceAccountCredentials(sa_email, key_data=key_data)
+    ee.Initialize(credentials=creds, project=project)
+    return "✅ Earth Engine initialized (service account)"
 
 # ✅ Correct call (no indentation, outside the function)
 st.success(initialize_ee())
